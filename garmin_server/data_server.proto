@@ -1,0 +1,198 @@
+syntax = "proto3";
+
+package boxes;
+
+option go_package = "boxes/backend/protos";
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+service Connector {
+  // Get table schemas
+  rpc GetTableNames (Empty)         returns (TableNames) {}
+
+  // Get table schemas
+  rpc GetTableSchemas (TableNames)  returns (TableSchemas) {}
+
+  // Get table contents
+  rpc GetTable (TableName)          returns (Table) {}
+}
+
+message Empty {
+}
+
+message TableName {
+  string name = 1;
+}
+
+message TableNames {
+  repeated string table_names = 1;
+}
+
+message TableSchemas {
+  repeated TableSchema table_schemas = 1;
+}
+
+message TableSchema {
+  repeated ColumnSchema column_schemas = 1;
+}
+
+enum ColumnType {
+  UNUSED    = 0;
+  INTEGER   = 1;
+  REAL      = 2;
+  TEXT      = 3;
+  DATETIME  = 4;
+}
+
+message ColumnSchema {
+  string      name = 1;
+  ColumnType  type = 2;
+}
+
+message Table {
+  repeated ColumnValues columns = 1;
+}
+
+message ColumnValues {
+  repeated string str_values = 1;
+  repeated double num_values = 2;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+service Algorithms {
+  rpc Max (DoubleList)      returns (DoubleValue) {}
+  rpc Min (DoubleList)      returns (DoubleValue) {}
+  rpc Average (DoubleList)  returns (DoubleValue) {}
+  rpc Median (DoubleList)   returns (DoubleValue) {}
+}
+
+message DoubleList {
+  repeated double values = 1;
+}
+
+message DoubleValue {
+  double value = 1;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+//
+service DataEngine {
+  // Data engine känner till alla tabeller i alla connectorer
+  // Den håller en tabell med alla tabeller och huruvida de är laddade eller ej
+  // Den laddar tabeller till en sqlite in memory databas vid behov, mha namnkonvention borde vi kunna hitta tabeller i queries
+
+  // Plot x antal axlar
+  // Axel kategorisk eller numerisk
+  rpc ExecuteQuery (Query) returns (Table) {}
+}
+
+message Query {
+           string     q            = 1;
+  repeated ColumnType column_types = 2;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+// Backend to all GUI clients
+
+service Backend {
+  // Initialises the backend by loading charts/tables accoring to configuration
+  rpc Initialise (ConfigFile)       returns (Empty) {}
+
+  // -- Procedures used to display charts ------------------------------------------------------------------------------
+
+  // Get all charts (actual graph window) contaning all plots (each line/scat/bar-collection), excluding actual values
+  rpc GetCharts (Empty)             returns (ChartCollection) {}
+
+  // Get x/y values for a certain plot
+  rpc GetPlotValues (PlotName)      returns (PlotValues) {}
+
+  // -- Procedures used to display tables ------------------------------------------------------------------------------
+
+  // Get information on the loaded tables
+  rpc GetLoadedTables (Empty)       returns (TableCollection) {}
+
+  // Get table names available in data engine
+  rpc GetAllTableNames (Empty)      returns (TableNames) {}
+
+  // Get table schemas from data engine
+  rpc GetTableSchemas (TableNames)  returns (TableSchemas) {}
+
+  // Get table contents from loaded table or from one in data engine
+  rpc GetTable (TableName)          returns (Table) {}
+
+  // -- Procedures modifying the saved configuration, typically by the used defining or modifying plots/tables ---------
+
+  // Add chart (and save this configuration in the yaml config)
+  rpc AddChart (ChartInfo)          returns (Empty) {}
+
+  // Remove chart (and save this configuration in the yaml config)
+  rpc RemoveChart (ChartName)       returns (Empty) {}
+
+  // Load table from data engine (and save this configuration in the yaml config)
+  rpc LoadTable (TableName)         returns (TableCollection) {}
+
+  // Unload table from backend (and save this configuration in the yaml config)
+  rpc UnloadTable (TableName)       returns (TableCollection) {}
+}
+
+
+message ConfigFile {
+  string yamlPath = 1;
+}
+
+
+message ChartCollection {
+  repeated Chart charts = 1;
+}
+
+message Chart {
+           string name       = 1;
+           string category   = 2;
+  repeated Plot   plots      = 3;
+}
+
+message Plot {
+  string name   = 1;
+  string kind   = 2;
+  uint32 color  = 3;
+  bool filled   = 4;
+  bool circles  = 5;
+}
+
+message PlotInfo {
+  string tableName   = 1;
+  string xColumnName = 2;
+  string yColumnName = 3;
+  Plot   plot        = 4;
+}
+
+message ChartInfo {
+           Chart    chart     = 1;
+  repeated PlotInfo plotInfos = 2;
+}
+
+message PlotName {
+  string str = 1;
+}
+
+message ChartName {
+  string str = 1;
+}
+
+message PlotValues {
+  repeated string xValues = 1; // TODO: must currently be dates
+  repeated double yValues = 2; // TODO: must currently be doubles
+}
+
+
+message TableCollection {
+  repeated TableInfo table = 1;
+}
+
+message TableInfo {
+  string name         = 1;
+  TableSchema schema  = 2;
+}
