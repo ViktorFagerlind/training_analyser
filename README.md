@@ -1,3 +1,4 @@
 # training_analyser
-## Generate proto
+## Generate protos
 python -m grpc_tools.protoc -I../proto --python_out=. --grpc_python_out=. ../proto/training_backend.proto
+protoc -I ../proto --grpc-swift_out=. ../proto/training_backend.proto
