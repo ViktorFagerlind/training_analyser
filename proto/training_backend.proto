@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package training_analyser;
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+service TrainingTrends {
+  rpc UpdateActivities (Empty)   returns (Empty) {}
+  rpc GetFitnessTrend (Empty)    returns (FitnessTrend) {}
+}
+
+message Empty {
+}
+
+message FitnessTrend {
+  repeated string dates     = 1;
+  repeated double fatigue   = 2;
+  repeated double fitness   = 3;
+  repeated double form      = 4;
+  repeated double tss       = 5;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+

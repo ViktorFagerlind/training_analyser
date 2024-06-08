@@ -110,7 +110,17 @@ class GarminConnector(ConnectorInterface):
                     if tdb.check_if_activity_exists(a[db_to_garmin['id']]):
                         continue
 
-                    activity = [a[v] for v in db_to_garmin.values()]
+                    activity = [a.get(v) for v in db_to_garmin.values()]
+                    '''
+                    activity = []
+                    for v in db_to_garmin.values():
+                        value = a.get(v)
+                        if value:
+                            activity.append(value)
+                        else:
+                            activity.append(None)
+                            print("Could not find " + str(v))
+                    '''
 
                     tdb.add_activity(tuple(activity))
                     nof_activities_added = nof_activities_added + 1

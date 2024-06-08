@@ -1,4 +1,4 @@
 
 class ConnectorInterface:
-    def add_activities_to_db(self, tdb, newer_than):
+    def add_activities_to_db(self, tdb):
         pass
