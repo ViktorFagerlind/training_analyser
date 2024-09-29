@@ -134,17 +134,7 @@ class TrainingDb:
     def save_fitness_trend(self, name, df_trend):
         df_trend.to_sql(name, self.db_connection, if_exists='replace', index=False)
 
-    def get_latest_fitness_trend_entry(self, trend_name='FITNESS_TREND'):
-        latest_entry_timestamp = get_db_get_latest_entry(self.db_connection, trend_name, 'Date',
-                                                         time_format=TimeEntryType.Date)
-        return latest_entry_timestamp.date() - future_trend_days if latest_entry_timestamp is not None else None
-
     def get_fitness_trend(self, trend_name='FITNESS_TREND', timestamp_str=None):
-        latest_fitness_entry = self.get_latest_fitness_trend_entry()
-        if latest_fitness_entry is None or date.today() > latest_fitness_entry:
-            print('Updating fitness trend')
-            self.update_fitness_trend()
-
         if timestamp_str is None:
             return pd.read_sql_query('SELECT * FROM ' + trend_name, self.db_connection)
         else:

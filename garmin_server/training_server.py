@@ -13,7 +13,7 @@ import training_backend_pb2_grpc
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-from algorithms import get_fitness_trends, future_trend_days
+from algorithms import get_fitness_trends
 
 
 class TrainingTrendsServicer(training_backend_pb2_grpc.TrainingTrendsServicer):
@@ -102,7 +102,7 @@ class TrainingTrendsServicer(training_backend_pb2_grpc.TrainingTrendsServicer):
                                                         )
         return pd_activities
 
-    
+
 def serve():
     servicer = TrainingTrendsServicer(GarminConnector())
 
