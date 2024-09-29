@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/garmin_server.iml" filepath="$PROJECT_DIR$/.idea/garmin_server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../python_client/.idea/python_client.iml" filepath="$PROJECT_DIR$/../python_client/.idea/python_client.iml" />
     </modules>
   </component>
 </project>

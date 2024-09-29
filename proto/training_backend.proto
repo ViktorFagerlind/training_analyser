@@ -5,11 +5,17 @@ package training_analyser;
 // ---------------------------------------------------------------------------------------------------------------------
 
 service TrainingTrends {
-  rpc UpdateActivities (Empty)   returns (Empty) {}
-  rpc GetFitnessTrend (Empty)    returns (FitnessTrend) {}
+  rpc UpdateData (Empty)         returns (Empty) {}
+  rpc GetFitnessTrend (Name)    returns (FitnessTrend) {}
+  rpc GetRawTrendData (Empty)    returns (RawTrendData) {}
+  rpc GetActivities (Empty)      returns (Activities) {}
 }
 
 message Empty {
+}
+
+message Name {
+  string name = 1;
 }
 
 message FitnessTrend {
@@ -19,6 +25,26 @@ message FitnessTrend {
   repeated double form      = 4;
   repeated double tss       = 5;
 }
+
+message RawTrendData {
+  repeated string dates     = 1;
+  repeated double vo2max    = 2;
+}
+
+message Activities {
+  repeated int64  id                     = 1;
+  repeated string name                   = 2;
+  repeated string date_time              = 3;
+  repeated double average_hr             = 4;
+  repeated double max_hr                 = 5;
+  repeated double avg_power              = 6;
+  repeated double norm_power             = 7;
+  repeated double training_load          = 8;
+  repeated double training_stress_score  = 9;
+  repeated double duration               = 10;
+  repeated double vo2max                 = 11;
+}
+
 
 // ---------------------------------------------------------------------------------------------------------------------
 

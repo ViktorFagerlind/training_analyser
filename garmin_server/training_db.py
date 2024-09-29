@@ -4,7 +4,7 @@ import pandas as pd
 import math
 
 from datetime import datetime, timedelta, date
-from enum import Enum
+from enum import Enum, IntEnum
 
 # Configure debug logging
 logging.basicConfig(level=logging.INFO)
@@ -102,6 +102,18 @@ class TrainingDb:
         except sqlite3.Error as e:
             logger.error(e)
 
+    def create_raw_trend_data_table(self):
+        create_session_table_sql = '''CREATE TABLE IF NOT EXISTS RAW_TREND_DATA
+                              (Date                     DATE   PRIMARY KEY NOT NULL,
+                               VO2MAX                   REAL,
+                               RESTING_HR               REAL);'''
+
+        create_db_table(self.db_connection, create_session_table_sql)
+
+    def add_raw_trend_data(self, date, vo2max, resting_hr):
+        add_raw_trend_data_sql = '''INSERT INTO RAW_TREND_DATA(Date, VO2MAX, RESTING_HR) VALUES(?,?,?)'''
+        add_db_row(self.db_connection, add_raw_trend_data_sql, (date.strftime('%Y-%m-%d'), vo2max, resting_hr))
+
     def create_activities_table(self):
         create_session_table_sql = '''CREATE TABLE IF NOT EXISTS ACTIVITIES
                               (id                       INT   PRIMARY KEY NOT NULL,
@@ -112,7 +124,9 @@ class TrainingDb:
                                avg_power                REAL,
                                norm_power               REAL,
                                training_load            REAL,
-                               training_stress_score    REAL);'''
+                               training_stress_score    REAL,
+                               duration                 REAL,
+                               vo2max                   REAL);'''
 
         create_db_table(self.db_connection, create_session_table_sql)
 
@@ -125,68 +139,99 @@ class TrainingDb:
                 tss = tss + s
         return tss
 
+    @staticmethod
+    def get_day_load(df, date):
+        loads = df[df['date'] == date]['training_load']
+        load = 0
+        for l in loads:
+            if not math.isnan(l):
+                load = load + l
+        return load
+
     def update_fitness_trend(self):
         df_activities = self.get_activities()
         df_activities['date'] = pd.to_datetime(df_activities['start_time']).dt.date
 
         date_series = []
-        fatigue_series = []
-        fitness_series = []
-        form_series = []
-        tss_series = []
-        fatigue = 0
-        fitness = 0
-        form = 0
+
+        class Load(IntEnum):
+            TSS = 0
+            GARMIN_LOAD = 1
+        fatigue_series = [[], []]
+        fitness_series = [[], []]
+        form_series = [[], []]
+        load_series = [[], []]
+        fatigue = [0, 0]
+        fitness = [0, 0]
+        form = [0, 0]
+
         current_date = min(df_activities['date'])
         today = date.today()
         day = timedelta(days=1)
         while current_date <= today + self.future_trend_days:
-            tss = TrainingDb.get_day_tss(df_activities, current_date)
-            tss_series.append(tss)
-            fatigue = fatigue + (tss - fatigue) * (1 - math.exp(-1.0 / 7.0))
-            fitness = fitness + (tss - fitness) * (1 - math.exp(-1.0 / 42.0))
-            fatigue_series.append(fatigue)
-            fitness_series.append(fitness)
-            form_series.append(form)
-            form = fitness - fatigue
+            load = [TrainingDb.get_day_tss(df_activities, current_date),
+                    TrainingDb.get_day_load(df_activities, current_date)]
+            for l in Load:
+                load_series[l].append(load[l])
+                fatigue[l] = fatigue[l] + (load[l] - fatigue[l]) * (1 - math.exp(-1.0 / 7.0))
+                fitness[l] = fitness[l] + (load[l] - fitness[l]) * (1 - math.exp(-1.0 / 42.0))
+                fatigue_series[l].append(fatigue[l])
+                fitness_series[l].append(fitness[l])
+                form[l] = fitness[l] - fatigue[l]
+                form_series[l].append(form[l])
             date_series.append(current_date)
             current_date = current_date + day
 
-        data = {'Date': date_series,
-                'Fatigue': fatigue_series,
-                'Fitness': fitness_series,
-                'Form': form_series,
-                'TSS': tss_series}
+        db_names = ['FITNESS_TREND', 'GARMIN_TREND']
 
-        df_fitness_trend = pd.DataFrame(data)
+        for l in Load:
+            data = {'Date': date_series,
+                    'Fatigue': fatigue_series[l],
+                    'Fitness': fitness_series[l],
+                    'Form': form_series[l],
+                    'TSS': load_series[l]}
+            df_trend = pd.DataFrame(data)
+            df_trend.to_sql(db_names[l], self.db_connection, if_exists='replace', index=False)
 
-        df_fitness_trend.to_sql('FITNESS_TREND', self.db_connection, if_exists='replace', index=False)
+    def get_latest_fitness_trend_entry(self, trend_name='FITNESS_TREND'):
+        latest_entry_timestamp = get_db_get_latest_entry(self.db_connection, trend_name, 'Date',
+                                                         time_format=TimeEntryType.Date)
+        return latest_entry_timestamp.date() - self.future_trend_days if latest_entry_timestamp is not None else None
 
-    def get_fitness_trend(self, timestamp_str=None):
+    def get_fitness_trend(self, trend_name='FITNESS_TREND', timestamp_str=None):
         latest_fitness_entry = self.get_latest_fitness_trend_entry()
         if latest_fitness_entry is None or date.today() > latest_fitness_entry:
             print('Updating fitness trend')
             self.update_fitness_trend()
 
         if timestamp_str is None:
-            return pd.read_sql_query('SELECT * FROM FITNESS_TREND ORDER BY Date', self.db_connection)
+            return pd.read_sql_query('SELECT * FROM ' + trend_name, self.db_connection)
         else:
             return pd.read_sql_query(
-                'SELECT * FROM FITNESS_TREND WHERE Date > "{}" ORDER BY Date'.format(timestamp_str),
+                'SELECT * FROM ' + trend_name + ' WHERE Date > "{}" ORDER BY Date'.format(timestamp_str),
                 self.db_connection)
 
-    def get_latest_fitness_trend_entry(self):
-        latest_entry_timestamp = get_db_get_latest_entry(self.db_connection, 'FITNESS_TREND', 'Date',
+    def get_latest_raw_trend_data_entry(self):
+        latest_entry_timestamp = get_db_get_latest_entry(self.db_connection, 'RAW_TREND_DATA', 'Date',
                                                          time_format=TimeEntryType.Date)
-        return latest_entry_timestamp.date() - self.future_trend_days if latest_entry_timestamp is not None else None
+        return latest_entry_timestamp.date() if latest_entry_timestamp is not None else None
+
+    def get_raw_trend_data(self, timestamp_str=None):
+        if timestamp_str is None:
+            return pd.read_sql_query('SELECT * FROM RAW_TREND_DATA ORDER BY Date', self.db_connection)
+        else:
+            return pd.read_sql_query(
+                'SELECT * FROM RAW_TREND_DATA WHERE Date > "{}" ORDER BY Date'.format(timestamp_str),
+                self.db_connection)
 
     def get_latest_activity_entry(self):
         return get_db_get_latest_entry(self.db_connection, 'ACTIVITIES', 'start_time')
 
+
     def add_activity(self, activity):
         add_activity_sql = '''INSERT INTO ACTIVITIES(ID, name, start_time, average_hr, max_hr, avg_power, norm_power, 
-                                                     training_load, training_stress_score)
-                                                     VALUES(?,?,?,?,?,?,?,?,?)'''
+                                                     training_load, training_stress_score, duration, vo2max)
+                                                     VALUES(?,?,?,?,?,?,?,?,?,?,?)'''
         add_db_row(self.db_connection, add_activity_sql, activity)
 
     def get_activities(self, timestamp_str=None):

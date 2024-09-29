@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x16training_backend.proto\x12\x11training_analyser\"\x07\n\x05\x45mpty\"Z\n\x0c\x46itnessTrend\x12\r\n\x05\x64\x61tes\x18\x01 \x03(\t\x12\x0f\n\x07\x66\x61tigue\x18\x02 \x03(\x01\x12\x0f\n\x07\x66itness\x18\x03 \x03(\x01\x12\x0c\n\x04\x66orm\x18\x04 \x03(\x01\x12\x0b\n\x03tss\x18\x05 \x03(\x01\x32\xaa\x01\n\x0eTrainingTrends\x12H\n\x10UpdateActivities\x12\x18.training_analyser.Empty\x1a\x18.training_analyser.Empty\"\x00\x12N\n\x0fGetFitnessTrend\x12\x18.training_analyser.Empty\x1a\x1f.training_analyser.FitnessTrend\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\x16training_backend.proto\x12\x11training_analyser\"\x07\n\x05\x45mpty\"\x14\n\x04Name\x12\x0c\n\x04name\x18\x01 \x01(\t\"Z\n\x0c\x46itnessTrend\x12\r\n\x05\x64\x61tes\x18\x01 \x03(\t\x12\x0f\n\x07\x66\x61tigue\x18\x02 \x03(\x01\x12\x0f\n\x07\x66itness\x18\x03 \x03(\x01\x12\x0c\n\x04\x66orm\x18\x04 \x03(\x01\x12\x0b\n\x03tss\x18\x05 \x03(\x01\"-\n\x0cRawTrendData\x12\r\n\x05\x64\x61tes\x18\x01 \x03(\t\x12\x0e\n\x06vo2max\x18\x02 \x03(\x01\"\xdc\x01\n\nActivities\x12\n\n\x02id\x18\x01 \x03(\x03\x12\x0c\n\x04name\x18\x02 \x03(\t\x12\x11\n\tdate_time\x18\x03 \x03(\t\x12\x12\n\naverage_hr\x18\x04 \x03(\x01\x12\x0e\n\x06max_hr\x18\x05 \x03(\x01\x12\x11\n\tavg_power\x18\x06 \x03(\x01\x12\x12\n\nnorm_power\x18\x07 \x03(\x01\x12\x15\n\rtraining_load\x18\x08 \x03(\x01\x12\x1d\n\x15training_stress_score\x18\t \x03(\x01\x12\x10\n\x08\x64uration\x18\n \x03(\x01\x12\x0e\n\x06vo2max\x18\x0b \x03(\x01\x32\xbf\x02\n\x0eTrainingTrends\x12\x42\n\nUpdateData\x12\x18.training_analyser.Empty\x1a\x18.training_analyser.Empty\"\x00\x12M\n\x0fGetFitnessTrend\x12\x17.training_analyser.Name\x1a\x1f.training_analyser.FitnessTrend\"\x00\x12N\n\x0fGetRawTrendData\x12\x18.training_analyser.Empty\x1a\x1f.training_analyser.RawTrendData\"\x00\x12J\n\rGetActivities\x12\x18.training_analyser.Empty\x1a\x1d.training_analyser.Activities\"\x00\x62\x06proto3'
 )
 
 
@@ -47,6 +47,38 @@ _EMPTY = _descriptor.Descriptor(
   ],
   serialized_start=45,
   serialized_end=52,
+)
+
+
+_NAME = _descriptor.Descriptor(
+  name='Name',
+  full_name='training_analyser.Name',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='name', full_name='training_analyser.Name.name', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=54,
+  serialized_end=74,
 )
 
 
@@ -105,12 +137,156 @@ _FITNESSTREND = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=54,
-  serialized_end=144,
+  serialized_start=76,
+  serialized_end=166,
+)
+
+
+_RAWTRENDDATA = _descriptor.Descriptor(
+  name='RawTrendData',
+  full_name='training_analyser.RawTrendData',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='dates', full_name='training_analyser.RawTrendData.dates', index=0,
+      number=1, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='vo2max', full_name='training_analyser.RawTrendData.vo2max', index=1,
+      number=2, type=1, cpp_type=5, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=168,
+  serialized_end=213,
+)
+
+
+_ACTIVITIES = _descriptor.Descriptor(
+  name='Activities',
+  full_name='training_analyser.Activities',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='training_analyser.Activities.id', index=0,
+      number=1, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='name', full_name='training_analyser.Activities.name', index=1,
+      number=2, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='date_time', full_name='training_analyser.Activities.date_time', index=2,
+      number=3, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='average_hr', full_name='training_analyser.Activities.average_hr', index=3,
+      number=4, type=1, cpp_type=5, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='max_hr', full_name='training_analyser.Activities.max_hr', index=4,
+      number=5, type=1, cpp_type=5, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='avg_power', full_name='training_analyser.Activities.avg_power', index=5,
+      number=6, type=1, cpp_type=5, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='norm_power', full_name='training_analyser.Activities.norm_power', index=6,
+      number=7, type=1, cpp_type=5, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='training_load', full_name='training_analyser.Activities.training_load', index=7,
+      number=8, type=1, cpp_type=5, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='training_stress_score', full_name='training_analyser.Activities.training_stress_score', index=8,
+      number=9, type=1, cpp_type=5, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='duration', full_name='training_analyser.Activities.duration', index=9,
+      number=10, type=1, cpp_type=5, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='vo2max', full_name='training_analyser.Activities.vo2max', index=10,
+      number=11, type=1, cpp_type=5, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=216,
+  serialized_end=436,
 )
 
 DESCRIPTOR.message_types_by_name['Empty'] = _EMPTY
+DESCRIPTOR.message_types_by_name['Name'] = _NAME
 DESCRIPTOR.message_types_by_name['FitnessTrend'] = _FITNESSTREND
+DESCRIPTOR.message_types_by_name['RawTrendData'] = _RAWTRENDDATA
+DESCRIPTOR.message_types_by_name['Activities'] = _ACTIVITIES
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Empty = _reflection.GeneratedProtocolMessageType('Empty', (_message.Message,), {
@@ -120,12 +296,33 @@ Empty = _reflection.GeneratedProtocolMessageType('Empty', (_message.Message,), {
   })
 _sym_db.RegisterMessage(Empty)
 
+Name = _reflection.GeneratedProtocolMessageType('Name', (_message.Message,), {
+  'DESCRIPTOR' : _NAME,
+  '__module__' : 'training_backend_pb2'
+  # @@protoc_insertion_point(class_scope:training_analyser.Name)
+  })
+_sym_db.RegisterMessage(Name)
+
 FitnessTrend = _reflection.GeneratedProtocolMessageType('FitnessTrend', (_message.Message,), {
   'DESCRIPTOR' : _FITNESSTREND,
   '__module__' : 'training_backend_pb2'
   # @@protoc_insertion_point(class_scope:training_analyser.FitnessTrend)
   })
 _sym_db.RegisterMessage(FitnessTrend)
+
+RawTrendData = _reflection.GeneratedProtocolMessageType('RawTrendData', (_message.Message,), {
+  'DESCRIPTOR' : _RAWTRENDDATA,
+  '__module__' : 'training_backend_pb2'
+  # @@protoc_insertion_point(class_scope:training_analyser.RawTrendData)
+  })
+_sym_db.RegisterMessage(RawTrendData)
+
+Activities = _reflection.GeneratedProtocolMessageType('Activities', (_message.Message,), {
+  'DESCRIPTOR' : _ACTIVITIES,
+  '__module__' : 'training_backend_pb2'
+  # @@protoc_insertion_point(class_scope:training_analyser.Activities)
+  })
+_sym_db.RegisterMessage(Activities)
 
 
 
@@ -136,12 +333,12 @@ _TRAININGTRENDS = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=147,
-  serialized_end=317,
+  serialized_start=439,
+  serialized_end=758,
   methods=[
   _descriptor.MethodDescriptor(
-    name='UpdateActivities',
-    full_name='training_analyser.TrainingTrends.UpdateActivities',
+    name='UpdateData',
+    full_name='training_analyser.TrainingTrends.UpdateData',
     index=0,
     containing_service=None,
     input_type=_EMPTY,
@@ -154,8 +351,28 @@ _TRAININGTRENDS = _descriptor.ServiceDescriptor(
     full_name='training_analyser.TrainingTrends.GetFitnessTrend',
     index=1,
     containing_service=None,
-    input_type=_EMPTY,
+    input_type=_NAME,
     output_type=_FITNESSTREND,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='GetRawTrendData',
+    full_name='training_analyser.TrainingTrends.GetRawTrendData',
+    index=2,
+    containing_service=None,
+    input_type=_EMPTY,
+    output_type=_RAWTRENDDATA,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='GetActivities',
+    full_name='training_analyser.TrainingTrends.GetActivities',
+    index=3,
+    containing_service=None,
+    input_type=_EMPTY,
+    output_type=_ACTIVITIES,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),
