@@ -13,6 +13,8 @@ import training_backend_pb2_grpc
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+from algorithms import get_fitness_trends, future_trend_days
+
 
 class TrainingTrendsServicer(training_backend_pb2_grpc.TrainingTrendsServicer):
     def __init__(self, connector):
@@ -32,7 +34,10 @@ class TrainingTrendsServicer(training_backend_pb2_grpc.TrainingTrendsServicer):
             logger.error('Error from add_activities_from_garmin')
         else:
             print('Added {} activities to dB'.format(nof_added))
-            tdb.update_fitness_trend()
+            df_activities = self.get_activities()
+            trends = get_fitness_trends(df_activities)
+            for trend in trends:
+                tdb.save_fitness_trend(trend[0], trend[1])
 
         nof_added = self.connector.add_raw_trend_data_to_db(tdb)
         print('Added {} raw trend entries to dB'.format(nof_added))
@@ -82,7 +87,6 @@ class TrainingTrendsServicer(training_backend_pb2_grpc.TrainingTrendsServicer):
 
     def GetActivities(self, request, context):
         df_activities = self.get_activities()
-        #df_activities['date_time'] = pd.to_datetime(df_activities['start_time']).dt.date
 
         pd_activities = training_backend_pb2.Activities(id=df_activities.id.to_list(),
                                                         name=['No name' if v is None else v for v in df_activities.name.to_list()],
@@ -98,8 +102,7 @@ class TrainingTrendsServicer(training_backend_pb2_grpc.TrainingTrendsServicer):
                                                         )
         return pd_activities
 
-
-
+    
 def serve():
     servicer = TrainingTrendsServicer(GarminConnector())
 

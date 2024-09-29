@@ -1,10 +1,13 @@
 import sqlite3
 import logging
 import pandas as pd
-import math
 
-from datetime import datetime, timedelta, date
-from enum import Enum, IntEnum
+from datetime import datetime, date
+
+from algorithms import future_trend_days
+
+from enum import Enum
+
 
 # Configure debug logging
 logging.basicConfig(level=logging.INFO)
@@ -78,8 +81,6 @@ def get_db_get_latest_entry(conn, table_name, time_column, time_format=TimeEntry
 
 
 class TrainingDb:
-    future_trend_days = timedelta(days=14)
-
     def __init__(self):
         self.db_connection = None
 
@@ -130,73 +131,13 @@ class TrainingDb:
 
         create_db_table(self.db_connection, create_session_table_sql)
 
-    @staticmethod
-    def get_day_tss(df, date):
-        stresses = df[df['date'] == date]['training_stress_score']
-        tss = 0
-        for s in stresses:
-            if not math.isnan(s):
-                tss = tss + s
-        return tss
-
-    @staticmethod
-    def get_day_load(df, date):
-        loads = df[df['date'] == date]['training_load']
-        load = 0
-        for l in loads:
-            if not math.isnan(l):
-                load = load + l
-        return load
-
-    def update_fitness_trend(self):
-        df_activities = self.get_activities()
-        df_activities['date'] = pd.to_datetime(df_activities['start_time']).dt.date
-
-        date_series = []
-
-        class Load(IntEnum):
-            TSS = 0
-            GARMIN_LOAD = 1
-        fatigue_series = [[], []]
-        fitness_series = [[], []]
-        form_series = [[], []]
-        load_series = [[], []]
-        fatigue = [0, 0]
-        fitness = [0, 0]
-        form = [0, 0]
-
-        current_date = min(df_activities['date'])
-        today = date.today()
-        day = timedelta(days=1)
-        while current_date <= today + self.future_trend_days:
-            load = [TrainingDb.get_day_tss(df_activities, current_date),
-                    TrainingDb.get_day_load(df_activities, current_date)]
-            for l in Load:
-                load_series[l].append(load[l])
-                fatigue[l] = fatigue[l] + (load[l] - fatigue[l]) * (1 - math.exp(-1.0 / 7.0))
-                fitness[l] = fitness[l] + (load[l] - fitness[l]) * (1 - math.exp(-1.0 / 42.0))
-                fatigue_series[l].append(fatigue[l])
-                fitness_series[l].append(fitness[l])
-                form[l] = fitness[l] - fatigue[l]
-                form_series[l].append(form[l])
-            date_series.append(current_date)
-            current_date = current_date + day
-
-        db_names = ['FITNESS_TREND', 'GARMIN_TREND']
-
-        for l in Load:
-            data = {'Date': date_series,
-                    'Fatigue': fatigue_series[l],
-                    'Fitness': fitness_series[l],
-                    'Form': form_series[l],
-                    'TSS': load_series[l]}
-            df_trend = pd.DataFrame(data)
-            df_trend.to_sql(db_names[l], self.db_connection, if_exists='replace', index=False)
+    def save_fitness_trend(self, name, df_trend):
+        df_trend.to_sql(name, self.db_connection, if_exists='replace', index=False)
 
     def get_latest_fitness_trend_entry(self, trend_name='FITNESS_TREND'):
         latest_entry_timestamp = get_db_get_latest_entry(self.db_connection, trend_name, 'Date',
                                                          time_format=TimeEntryType.Date)
-        return latest_entry_timestamp.date() - self.future_trend_days if latest_entry_timestamp is not None else None
+        return latest_entry_timestamp.date() - future_trend_days if latest_entry_timestamp is not None else None
 
     def get_fitness_trend(self, trend_name='FITNESS_TREND', timestamp_str=None):
         latest_fitness_entry = self.get_latest_fitness_trend_entry()

@@ -86,14 +86,14 @@ class GarminConnector(ConnectorInterface):
         today = datetime.today()
         # Define the specific date you want to loop until
         latest_trend_data = tdb.get_latest_raw_trend_data_entry()
-        start_date = datetime(latest_trend_data.year, latest_trend_data.month, latest_trend_data.day) if latest_trend_data is not None else datetime(2017, 1, 1)
+        start_date = datetime(latest_trend_data.year, latest_trend_data.month, latest_trend_data.day) if latest_trend_data is not None else datetime(2022, 1, 1)
         # Calculate the number of days between today and the specific date
         num_days = (today - start_date).days
-        # Loop over the number of days in 4 years
         for i in range(num_days):
             # Calculate the date for the current day
             date = today - timedelta(days=i)
             datestr = date.strftime('%Y-%m-%d')
+            print("get data from " + datestr)
 
             max_metrics_data = self.api.get_max_metrics(cdate=datestr)
             stats_data = self.api.get_stats(cdate=datestr)
@@ -107,8 +107,8 @@ class GarminConnector(ConnectorInterface):
                 tdb.add_raw_trend_data(date, vo2max, resting_hr)
                 print('added row {}'.format((date, vo2max, resting_hr)))
                 nof_added = nof_added + 1
-            except (KeyError, IndexError, TypeError) as _:
-                pass
+            except (KeyError, IndexError, TypeError) as err:
+                print(err)
 
         return nof_added
 
