@@ -164,3 +164,5 @@ cython_debug/
 # Secret
 garmin_server/trainingtrends-2d3fb-firebase-adminsdk-w82rb-1949489f7a.json
 
+# App
+ios_client/TrainingTrends
