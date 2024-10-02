@@ -1,11 +1,12 @@
 import logging
-from training_server_proxy import TrainingServerProxy
-import grpc
-from ..garmin_server.training_fs_db import TrainingFsDb
 
 import sys
 import argparse
 from plots import plot_fitness_trend, plot_garmin_trend, plot_activities
+
+sys.path.append('../parentdirectory')
+from training_fs_db import TrainingFsDb
+
 
 # Configure debug logging
 logging.basicConfig(level=logging.INFO)
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def connect():
     tdb = TrainingFsDb()
-    tdb.connect("trainingtrends-2d3fb-firebase-adminsdk-w82rb-1949489f7a.json")
+    tdb.connect('../garmin_server/trainingtrends-private-key.json')
     return tdb
 
 
