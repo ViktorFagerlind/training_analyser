@@ -24,14 +24,20 @@ def delete_collection(coll_ref, batch_size):
         return delete_collection(coll_ref, batch_size)
 
 
-def collection_to_df(coll_ref, timestamp_str):
+def collection_to_df(coll_ref, order_by, timestamp_str):
     if timestamp_str is not None:
         time = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
-        docs = coll_ref.where('start_time', '>', time).order_by('start_time').stream()
+        docs = coll_ref.where(order_by, '>', time).order_by('start_time').stream()
     else:
-        docs = coll_ref.order_by('start_time').stream()
+        docs = coll_ref.order_by(order_by).stream()
 
-    items = list(map(lambda x: {**x.to_dict(), 'id': x.id}, docs))
+
+    items = []
+    for doc in docs:
+        item = doc.to_dict()
+        item['id'] = doc.id
+        items.append(item)
+
     df = pd.DataFrame(items)
     df.set_index('id', inplace=True)
     return df
@@ -80,7 +86,7 @@ class TrainingFsDb:
         return trend_df
 
     def get_latest_raw_trend_data_entry_time(self):
-        latest_query = self.db.collection('raw_trend').order_by('datetime', direction=firestore.Query.DESCENDING).limit(1)
+        latest_query = self.db.collection('raw_trend').order_by('date', direction=firestore.Query.DESCENDING).limit(1)
         latest = latest_query.get()
 
         if not latest:
@@ -89,7 +95,9 @@ class TrainingFsDb:
         return latest[0].to_dict()['start_time']
 
     def get_raw_trend_data(self, timestamp_str=None):
-        pass
+        df_activities = collection_to_df(self.db.collection('raw_trend'), order_by='date', timestamp_str=timestamp_str)
+        df_activities['dates'] = df_activities.loc[:, 'date']
+        return df_activities
 
 
     def get_latest_activity_entry_time(self):
@@ -110,7 +118,9 @@ class TrainingFsDb:
         doc_ref.set(activity)
 
     def get_df_activities(self, timestamp_str=None):
-        return collection_to_df(self.db.collection('activities'), timestamp_str=timestamp_str)
+        df_activities = collection_to_df(self.db.collection('activities'), order_by='start_time', timestamp_str=timestamp_str)
+        df_activities['date_time'] = df_activities.loc[:, 'start_time']
+        return df_activities
 
     def delete(self, collection_name):
         delete_collection(coll_ref=self.db.collection(collection_name), batch_size=100)
