@@ -16,6 +16,8 @@ from garminconnect import (
     GarminConnectAuthenticationError
 )
 
+import pytz
+
 # Configure debug logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -85,7 +87,7 @@ class GarminConnector(ConnectorInterface):
         # Get today's date
         today = datetime.today()
         # Define the specific date you want to loop until
-        latest_trend_data = tdb.get_latest_raw_trend_data_entry()
+        latest_trend_data = tdb.get_latest_raw_trend_data_entry_time()
         start_date = datetime(latest_trend_data.year, latest_trend_data.month, latest_trend_data.day) if latest_trend_data is not None else datetime(2022, 1, 1)
         # Calculate the number of days between today and the specific date
         num_days = (today - start_date).days
@@ -104,7 +106,7 @@ class GarminConnector(ConnectorInterface):
                 vo2max = max_metrics_data[0]['cycling']['vo2MaxPreciseValue']
                 resting_hr = stats_data['restingHeartRate']
 
-                tdb.add_raw_trend_data(date, vo2max, resting_hr)
+                tdb.add_raw_trend_data(pytz.UTC.localize(date), vo2max, resting_hr)
                 print('added row {}'.format((date, vo2max, resting_hr)))
                 nof_added = nof_added + 1
             except (KeyError, IndexError, TypeError) as err:
@@ -112,9 +114,9 @@ class GarminConnector(ConnectorInterface):
 
         return nof_added
 
-    def add_activities_to_db(self, tdb):
+    def add_activities_to_db(self, tdb, max_to_add=-1):
         nof_activities_added = 0
-        newer_than = tdb.get_latest_activity_entry()
+        newer_than = tdb.get_latest_activity_entry_time()
 
         if not self.api:
             logger.error('Could not connect to Garmin')
@@ -133,8 +135,8 @@ class GarminConnector(ConnectorInterface):
                         'vo2max': 'vO2MaxValue'}
 
         start = 0
-        limit = 100
-        while True:
+        limit = 100 if max_to_add <= 0 or max_to_add >= 100 else max_to_add
+        while max_to_add <= 0 or nof_activities_added < max_to_add:
             activities = self.api.get_activities(start=start, limit=limit)
             if not activities:
                 return nof_activities_added
@@ -143,16 +145,18 @@ class GarminConnector(ConnectorInterface):
                 activityType = a['activityType']['typeKey']
                 if ('cycling' in activityType or 'biking' in activityType):
                     activity_time = datetime.strptime(a['startTimeLocal'], '%Y-%m-%d %H:%M:%S')
-                    if newer_than is not None and activity_time < newer_than:
+                    activity_time_utc = pytz.UTC.localize(activity_time)
+                    if newer_than is not None and activity_time_utc < newer_than:
                         return nof_activities_added
 
                     if tdb.check_if_activity_exists(a[db_to_garmin['id']]):
                         continue
 
-                    activity = [a.get(v) for v in db_to_garmin.values()]
+                    activity = {}
+                    for k in db_to_garmin.keys():
+                        activity[k] = a.get(db_to_garmin[k])
 
-                    tdb.add_activity(tuple(activity))
+                    tdb.add_activity(activity)
                     nof_activities_added = nof_activities_added + 1
                     print('added row {}'.format(activity))
-
             start = start + limit

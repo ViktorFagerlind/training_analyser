@@ -364,7 +364,7 @@ def switch(api, i):
                 # Get activities data from start and limit
                 display_json(
                     f"api.get_activities({start}, {limit})",
-                    api.get_activities(start, limit),
+                    api.get_df_activities(start, limit),
                 )  # 0=start, 1=limit
             elif i == "o":
                 # Get last activity
@@ -428,7 +428,7 @@ def switch(api, i):
 
             elif i == "r":
                 # Get activities data from start and limit
-                activities = api.get_activities(start, limit)  # 0=start, 1=limit
+                activities = api.get_df_activities(start, limit)  # 0=start, 1=limit
 
                 # Get activity splits
                 first_activity_id = activities[0].get("activityId")

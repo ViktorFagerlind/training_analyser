@@ -5,6 +5,7 @@ import math
 
 future_trend_days = timedelta(days=14)
 
+
 def get_day_tss(df, date):
     stresses = df[df['date'] == date]['training_stress_score']
     tss = 0

@@ -3,31 +3,31 @@ import pandas as pd
 
 from concurrent import futures
 from garmin_connector import GarminConnector
-from training_db import TrainingDb
+from training_sql_db import TrainingSqlDb
+from algorithms import get_fitness_trends
 
 import grpc
 import training_backend_pb2
 import training_backend_pb2_grpc
 
+
 # Configure debug logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-from algorithms import get_fitness_trends
 
 
 class TrainingTrendsServicer(training_backend_pb2_grpc.TrainingTrendsServicer):
     def __init__(self, connector):
         self.db_name = 'test.db'
         self.connector = connector
-        tdb = TrainingDb()
+        tdb = TrainingSqlDb()
         tdb.connect(self.db_name)
         tdb.create_activities_table()
         tdb.create_raw_trend_data_table()
         tdb.close()
 
     def update_data(self):
-        tdb = TrainingDb()
+        tdb = TrainingSqlDb()
         tdb.connect(self.db_name)
         nof_added = self.connector.add_activities_to_db(tdb)
         if nof_added < 0:
@@ -45,25 +45,25 @@ class TrainingTrendsServicer(training_backend_pb2_grpc.TrainingTrendsServicer):
         tdb.close()
 
     def get_fitness_trend(self, trend_name, timestamp_str=None):
-        tdb = TrainingDb()
+        tdb = TrainingSqlDb()
         tdb.connect(self.db_name)
         trend = tdb.get_fitness_trend(trend_name=trend_name, timestamp_str=timestamp_str)
         tdb.close()
         return trend
 
     def get_raw_trend_data(self, timestamp_str=None):
-        tdb = TrainingDb()
+        tdb = TrainingSqlDb()
         tdb.connect(self.db_name)
         raw_trend_data = tdb.get_raw_trend_data(timestamp_str)
         tdb.close()
         return raw_trend_data
 
     def get_activities(self, timestamp_str=None):
-        tdb = TrainingDb()
+        tdb = TrainingSqlDb()
         tdb.connect(self.db_name)
-        activities = tdb.get_activities(timestamp_str)
+        df_activities = tdb.get_df_activities(timestamp_str)
         tdb.close()
-        return activities
+        return df_activities
 
     def UpdateData(self, request, context):
         self.update_data()

@@ -4,7 +4,7 @@ import pandas as pd
 
 from datetime import datetime, date
 
-from algorithms import future_trend_days
+import pytz
 
 from enum import Enum
 
@@ -67,20 +67,23 @@ class TimeEntryType(Enum):
     Date = 2
 
 
-def get_db_get_latest_entry(conn, table_name, time_column, time_format=TimeEntryType.TimeStamp):
+def get_db_get_latest_entry_time(conn, table_name, time_column, time_format=TimeEntryType.TimeStamp):
     try:
         c = conn.cursor()
         c.execute('SELECT {} FROM {} ORDER BY {} DESC LIMIT 1'.format(time_column, table_name, time_column))
 
         data = c.fetchone()
-        return None if data is None else datetime.strptime(data[0],
-                                                           '%Y-%m-%d %H:%M:%S' if time_format==TimeEntryType.TimeStamp
-                                                           else '%Y-%m-%d')
+        if data is None:
+            return None
+
+        entry_time = datetime.strptime(data[0], '%Y-%m-%d %H:%M:%S' if time_format==TimeEntryType.TimeStamp else '%Y-%m-%d')
+        return pytz.UTC.localize(entry_time)
+
     except sqlite3.Error as e:
         logger.error(e)
 
 
-class TrainingDb:
+class TrainingSqlDb:
     def __init__(self):
         self.db_connection = None
 
@@ -142,9 +145,9 @@ class TrainingDb:
                 'SELECT * FROM ' + trend_name + ' WHERE Date > "{}" ORDER BY Date'.format(timestamp_str),
                 self.db_connection)
 
-    def get_latest_raw_trend_data_entry(self):
-        latest_entry_timestamp = get_db_get_latest_entry(self.db_connection, 'RAW_TREND_DATA', 'Date',
-                                                         time_format=TimeEntryType.Date)
+    def get_latest_raw_trend_data_entry_time(self):
+        latest_entry_timestamp = get_db_get_latest_entry_time(self.db_connection, 'RAW_TREND_DATA', 'Date',
+                                                              time_format=TimeEntryType.Date)
         return latest_entry_timestamp.date() if latest_entry_timestamp is not None else None
 
     def get_raw_trend_data(self, timestamp_str=None):
@@ -155,17 +158,17 @@ class TrainingDb:
                 'SELECT * FROM RAW_TREND_DATA WHERE Date > "{}" ORDER BY Date'.format(timestamp_str),
                 self.db_connection)
 
-    def get_latest_activity_entry(self):
-        return get_db_get_latest_entry(self.db_connection, 'ACTIVITIES', 'start_time')
-
+    def get_latest_activity_entry_time(self):
+        return get_db_get_latest_entry_time(self.db_connection, 'ACTIVITIES', 'start_time')
 
     def add_activity(self, activity):
+        activity_tuple = tuple([v for v in activity.values()])
         add_activity_sql = '''INSERT INTO ACTIVITIES(ID, name, start_time, average_hr, max_hr, avg_power, norm_power, 
                                                      training_load, training_stress_score, duration, vo2max)
                                                      VALUES(?,?,?,?,?,?,?,?,?,?,?)'''
-        add_db_row(self.db_connection, add_activity_sql, activity)
+        add_db_row(self.db_connection, add_activity_sql, activity_tuple)
 
-    def get_activities(self, timestamp_str=None):
+    def get_df_activities(self, timestamp_str=None):
         if timestamp_str is None:
             return pd.read_sql_query('SELECT * FROM ACTIVITIES ORDER BY start_time', self.db_connection)
         else:
