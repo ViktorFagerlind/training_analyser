@@ -11,10 +11,12 @@ from algorithms import get_fitness_trends
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def connect():
     tdb = TrainingFsDb()
-    tdb.connect("trainingtrends-2d3fb-firebase-adminsdk-w82rb-1949489f7a.json")
+    tdb.connect('trainingtrends-private-key.json')
     return tdb
+
 
 def delete_collection(collection_name):
     print('deleting activities')
